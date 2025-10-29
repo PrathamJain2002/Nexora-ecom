@@ -1,9 +1,13 @@
 import { Router } from "express";
 import { getProductById } from "../data/products.js";
+import { clearCart } from "../store/cartStore.js";
 
 const router = Router();
 
-router.post("/", (req, res) => {
+// For simplicity, use the same mock user as cart routes
+const MOCK_USER_ID = "demo-user";
+
+router.post("/", async (req, res) => {
   const { name, email, cartItems } = req.body || {};
   if (!name || !email || !Array.isArray(cartItems)) {
     return res.status(400).json({ error: "Invalid payload" });
@@ -22,6 +26,8 @@ router.post("/", (req, res) => {
     total: Number(total.toFixed(2)),
     timestamp: new Date().toISOString()
   };
+  // clear cart post-checkout (best-effort)
+  try { await clearCart(MOCK_USER_ID); } catch {}
   res.status(201).json(receipt);
 });
 

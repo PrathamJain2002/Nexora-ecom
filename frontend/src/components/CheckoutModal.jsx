@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useCart } from "../cart/CartContext.jsx";
 
 export default function CheckoutModal({ onClose }) {
-  const { cart } = useCart();
+  const { cart, fetchCart } = useCart();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [receipt, setReceipt] = useState(null);
@@ -20,7 +20,10 @@ export default function CheckoutModal({ onClose }) {
         body: JSON.stringify({ name, email, cartItems: cart.items.map(i => ({ productId: i.productId, qty: i.qty })) })
       });
       if (!res.ok) throw new Error("Checkout failed");
-      setReceipt(await res.json());
+      const r = await res.json();
+      setReceipt(r);
+      // refresh cart so UI shows empty after successful checkout
+      try { await fetchCart(); } catch {}
     } catch (e) {
       setError(e.message);
     } finally {
